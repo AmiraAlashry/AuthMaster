@@ -1,4 +1,5 @@
 ﻿using AuthMaster.Domain.Entities;
+using AuthMaster.Infrastructure.Configurations;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -19,20 +20,7 @@ namespace AuthMaster.Infrastructure.Data
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<IdentityRole>().HasData(
-            new IdentityRole
-            {
-            Id = "1", 
-            Name = "User",
-            NormalizedName = "USER"
-            },
-            new IdentityRole
-            {
-            Id = "2",
-            Name = "Admin",
-            NormalizedName = "ADMIN"
-            }
-            );
+            builder.ApplyConfiguration(new RoleConfiguration());
 
         }
     }

@@ -1,3 +1,7 @@
+using AuthMaster.Domain.Entities;
+using AuthMaster.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 namespace AuthMaster.API
@@ -8,6 +12,12 @@ namespace AuthMaster.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
 
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();

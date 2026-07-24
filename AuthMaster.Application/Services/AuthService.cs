@@ -4,6 +4,7 @@ using AuthMaster.Application.Interfaces;
 using AuthMaster.Domain.Entities;
 using AuthMaster.Domain.Enums;
 using AuthMaster.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +17,12 @@ namespace AuthMaster.Application.Services
     {
         private readonly IAuthRepository _authRepository;
         private readonly IEmailService _emailService;
-        public AuthService(IAuthRepository authRepository, IEmailService emailService)
+        private readonly ILogger<AuthService> _logger;
+        public AuthService(IAuthRepository authRepository, IEmailService emailService, ILogger<AuthService> logger)
         {
             _authRepository=authRepository;
             _emailService = emailService;
+            _logger = logger;
         }       
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
@@ -55,6 +58,16 @@ namespace AuthMaster.Application.Services
             var roleAssigned = await _authRepository.AddToRoleAsync(newUser, newUser.Type.ToString());
             if (!roleAssigned)
             {
+                var isDeleted = await _authRepository.DeleteUserAsync(newUser);
+                if (!isDeleted)
+                {
+                    _logger.LogCritical("CRITICAL in SIKKA Auth: Failed to delete orphan user with Email {Email} and ID {UserId}. Manual deletion required.", newUser.Email, newUser.Id);
+                }
+                else
+                {
+                    _logger.LogWarning("AuthMaster: Successfully rolled back and deleted user {Email} because the role {RoleName} could not be assigned (Ensure it exists in the database).", newUser.Email, newUser.Type.ToString());
+                }
+
                 return new AuthResponse
                 {
                     IsSuccess = false,

@@ -56,5 +56,11 @@ namespace AuthMaster.Infrastructure.Repositories
             var result = await _userManager.AddToRoleAsync(user, role);
             return result.Succeeded;
         }
+
+        public async Task<bool> DeleteUserAsync(ApplicationUser user)
+        {
+            var result = await _userManager.DeleteAsync(user);
+            return result.Succeeded;
+        }
     }
 }

@@ -44,5 +44,11 @@ namespace AuthMaster.Infrastructure.Repositories
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
             return token ?? string.Empty;
         }
+
+        public async Task<bool> AddToRoleAsync(ApplicationUser user, string role)
+        {
+            var result = await _userManager.AddToRoleAsync(user, role);
+            return result.Succeeded;
+        }
     }
 }

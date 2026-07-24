@@ -52,6 +52,15 @@ namespace AuthMaster.Application.Services
                     Message = result.ErrorMessage
                 };
             }
+            var roleAssigned = await _authRepository.AddToRoleAsync(newUser, newUser.Type.ToString());
+            if (!roleAssigned)
+            {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "Registration failed due to a system error. Please try again."
+                };
+            }
             var otpCode = await _authRepository.GenerateEmailOtpAsync(newUser.Email);
             if (string.IsNullOrEmpty(otpCode))
             {

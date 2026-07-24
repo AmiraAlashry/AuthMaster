@@ -12,5 +12,6 @@ namespace AuthMaster.Domain.Interfaces
         Task<bool> CheckEmailExistsAsync(string email);
         Task<(bool IsSuccess, string ErrorMessage)> RegisterUserAsync(ApplicationUser user, string password);
         Task<string> GenerateEmailOtpAsync(string email);
+        Task<bool> AddToRoleAsync(ApplicationUser user, string role);
     }
 }

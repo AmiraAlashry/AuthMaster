@@ -12,10 +12,12 @@ namespace AuthMaster.Infrastructure.Repositories
     public class AuthRepository : IAuthRepository
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        public AuthRepository(UserManager<ApplicationUser> userManager)
+        private readonly RoleManager<IdentityRole> _roleManager;
+        public AuthRepository(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
-         }
+            _roleManager = roleManager;
+        }
         public async Task<(bool IsSuccess, string ErrorMessage)> RegisterUserAsync(ApplicationUser user, string password)
         {
             var result = await _userManager.CreateAsync(user, password);
@@ -47,6 +49,10 @@ namespace AuthMaster.Infrastructure.Repositories
 
         public async Task<bool> AddToRoleAsync(ApplicationUser user, string role)
         {
+            if (!await _roleManager.RoleExistsAsync(role))
+            {
+                return false;
+            }
             var result = await _userManager.AddToRoleAsync(user, role);
             return result.Succeeded;
         }

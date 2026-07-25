@@ -42,8 +42,8 @@ namespace AuthMaster.Application.Services
                 LastName = request.LastName,
                 Email = request.Email,
                 Type = UserType.User,
-                UserName = Guid.NewGuid().ToString()
-
+                UserName = Guid.NewGuid().ToString(),
+                CreatedAt = DateTime.UtcNow
             };
             var result = await _authRepository.RegisterUserAsync(newUser,request.Password);
 

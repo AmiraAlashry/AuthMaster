@@ -1,5 +1,13 @@
+using AuthMaster.Application.DTOs.Auth;
+using AuthMaster.Application.Helpers;
+using AuthMaster.Application.Interfaces;
+using AuthMaster.Application.Services;
 using AuthMaster.Domain.Entities;
+using AuthMaster.Domain.Interfaces;
 using AuthMaster.Infrastructure.Data;
+using AuthMaster.Infrastructure.Repositories;
+using AuthMaster.Infrastructure.Services;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
@@ -19,6 +27,10 @@ namespace AuthMaster.API
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
 
+            builder.Services.AddValidatorsFromAssemblyContaining<ValidationFormat>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IAuthRepository, AuthRepository>();
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
             

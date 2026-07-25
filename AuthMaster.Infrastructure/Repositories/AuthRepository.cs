@@ -28,10 +28,10 @@ namespace AuthMaster.Infrastructure.Repositories
             return (true,string.Empty);
         }
 
-        public async Task<bool> CheckEmailExistsAsync(string email)
+        public async Task<ApplicationUser?> GetUserByEmailAsync(string email)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            return user != null;
+            return await _userManager.FindByEmailAsync(email);
+            
 
         }
 

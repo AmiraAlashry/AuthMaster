@@ -26,14 +26,22 @@ namespace AuthMaster.Application.Services
         }       
         public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
-            var isEmailExists = await _authRepository.CheckEmailExistsAsync(request.Email);
+            var existingUser = await _authRepository.GetUserByEmailAsync(request.Email);
 
-            if (isEmailExists)
+            if (existingUser != null)
             {
+                if (string.IsNullOrEmpty(existingUser.PasswordHash))
+                {
+                    return new AuthResponse
+                    {
+                        IsSuccess = false,
+                        Message = "This email is already registered via Google. Please log in using your Google account."
+                    };
+                }
                 return new AuthResponse
                 {
                     IsSuccess = false,
-                    Message = "Email already exists."
+                    Message = "This email is already registered. Please log in."
                 };
             }
             var newUser = new ApplicationUser
@@ -42,8 +50,8 @@ namespace AuthMaster.Application.Services
                 LastName = request.LastName,
                 Email = request.Email,
                 Type = UserType.User,
-                UserName = Guid.NewGuid().ToString()
-
+                UserName = Guid.NewGuid().ToString(),
+                CreatedAt = DateTime.UtcNow
             };
             var result = await _authRepository.RegisterUserAsync(newUser,request.Password);
 

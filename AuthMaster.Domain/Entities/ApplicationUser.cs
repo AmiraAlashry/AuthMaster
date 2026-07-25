@@ -13,5 +13,7 @@ namespace AuthMaster.Domain.Entities
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public UserType Type { get; set; } = UserType.User;
+        public DateTime CreatedAt { get; set; }
+        public DateTime? VerifiedAt { get; set; }
     }
 }

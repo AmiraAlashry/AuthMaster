@@ -14,11 +14,14 @@ namespace AuthMaster.API.Controllers
     {
         private readonly IAuthService _authService;
         private readonly IValidator<RegisterRequest> _validator;
+        private readonly IValidator<VerifyOtp> _VerifyOtpvalidator;
 
-        public AuthController(IAuthService authService, IValidator<RegisterRequest> validator)
+
+        public AuthController(IAuthService authService, IValidator<RegisterRequest> validator, IValidator<VerifyOtp> VerifyOtpvalidator)
         {
             _authService = authService;
             _validator = validator;
+            _VerifyOtpvalidator = VerifyOtpvalidator;
         }
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -29,6 +32,22 @@ namespace AuthMaster.API.Controllers
                 return BadRequest(ValidationFormat.FormatErrors(validationResult));
             }
             var response = await _authService.RegisterAsync(request);
+            if (!response.IsSuccess)
+            {
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtp request)
+        {
+            var validationResult = await _VerifyOtpvalidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(ValidationFormat.FormatErrors(validationResult));
+            }
+
+            var response = await _authService.VerifyOtpAsync(request);
             if (!response.IsSuccess)
             {
                 return BadRequest(response);

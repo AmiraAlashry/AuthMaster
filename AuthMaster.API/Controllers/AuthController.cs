@@ -1,6 +1,7 @@
 ﻿using AuthMaster.Application.DTOs.Auth;
 using AuthMaster.Application.Helpers;
 using AuthMaster.Application.Interfaces;
+using AuthMaster.Application.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
@@ -15,13 +16,15 @@ namespace AuthMaster.API.Controllers
         private readonly IAuthService _authService;
         private readonly IValidator<RegisterRequest> _validator;
         private readonly IValidator<VerifyOtp> _VerifyOtpvalidator;
+        private readonly IValidator<ResendOtp> _ResendOtpvalidator;
 
 
-        public AuthController(IAuthService authService, IValidator<RegisterRequest> validator, IValidator<VerifyOtp> VerifyOtpvalidator)
+        public AuthController(IAuthService authService, IValidator<RegisterRequest> validator, IValidator<VerifyOtp> VerifyOtpvalidator, IValidator<ResendOtp> resendOtpvalidator)
         {
             _authService = authService;
             _validator = validator;
             _VerifyOtpvalidator = VerifyOtpvalidator;
+            _ResendOtpvalidator = resendOtpvalidator;
         }
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -48,6 +51,21 @@ namespace AuthMaster.API.Controllers
             }
 
             var response = await _authService.VerifyOtpAsync(request);
+            if (!response.IsSuccess)
+            {
+                return BadRequest(response);
+            }
+            return Ok(response);
+        }
+        [HttpPost("resend-otp")]
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtp request)
+        {
+            var validationResult = await _ResendOtpvalidator.ValidateAsync(request);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(ValidationFormat.FormatErrors(validationResult));
+            }
+            var response = await _authService.ResendOtpAsync(request);
             if (!response.IsSuccess)
             {
                 return BadRequest(response);

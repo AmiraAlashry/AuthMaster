@@ -14,5 +14,9 @@ namespace AuthMaster.Domain.Interfaces
         Task<string> GenerateEmailOtpAsync(string email);
         Task<bool> AddToRoleAsync(ApplicationUser user, string role);
         Task<bool> DeleteUserAsync(ApplicationUser user);
+        Task<(bool IsSuccess, string ErrorMessage)> VerifyEmailOtpAsync(ApplicationUser user, string otpCode);
+        Task<(bool IsSuccess, string ErrorMessage)> UpdateUserAsync(ApplicationUser user);
+        Task<(bool IsSuccess, string ErrorMessage)> UpdateSecurityStampAsync(ApplicationUser user);
+
     }
 }

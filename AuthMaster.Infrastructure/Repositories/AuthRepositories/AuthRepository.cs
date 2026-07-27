@@ -35,32 +35,36 @@ namespace AuthMaster.Infrastructure.Repositories.AuthRepositories
 
         }
 
-        public async Task<string> GenerateEmailOtpAsync(string email)
+        public async Task<string> GenerateEmailOtpAsync(ApplicationUser user)
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-            {
-                throw new InvalidOperationException($"Unexpected error: User with email '{email}' was not found after creation.");
-            }
-
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
             return token ?? string.Empty;
         }
 
-        public async Task<bool> AddToRoleAsync(ApplicationUser user, string role)
+        public async Task<(bool IsSuccess, string ErrorMessage)> AddToRoleAsync(ApplicationUser user, string role)
         {
             if (!await _roleManager.RoleExistsAsync(role))
             {
-                return false;
+                return (false, $"Role '{role}' does not exist in the system.");
             }
             var result = await _userManager.AddToRoleAsync(user, role);
-            return result.Succeeded;
+            if (!result.Succeeded)
+            {
+                var errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+                return (false, errorMessage);
+            }
+            return (true, string.Empty);
         }
 
-        public async Task<bool> DeleteUserAsync(ApplicationUser user)
+        public async Task<(bool IsSuccess, string ErrorMessage)> DeleteUserAsync(ApplicationUser user)
         {
             var result = await _userManager.DeleteAsync(user);
-            return result.Succeeded;
+            if (!result.Succeeded)
+            {
+                var errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+                return (false, errorMessage);
+            }   
+            return (true, string.Empty);
         }
 
         public async Task<(bool IsSuccess, string ErrorMessage)> VerifyEmailOtpAsync(ApplicationUser user, string otpCode)

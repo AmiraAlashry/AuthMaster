@@ -11,9 +11,9 @@ namespace AuthMaster.Domain.Interfaces.AuthRepositories
     {
         Task<ApplicationUser?> GetUserByEmailAsync(string email);
         Task<(bool IsSuccess, string ErrorMessage)> RegisterUserAsync(ApplicationUser user, string password);
-        Task<string> GenerateEmailOtpAsync(string email);
-        Task<bool> AddToRoleAsync(ApplicationUser user, string role);
-        Task<bool> DeleteUserAsync(ApplicationUser user);
+        Task<string> GenerateEmailOtpAsync(ApplicationUser user);
+        Task<(bool IsSuccess, string ErrorMessage)> AddToRoleAsync(ApplicationUser user, string role);
+        Task<(bool IsSuccess, string ErrorMessage)> DeleteUserAsync(ApplicationUser user);
         Task<(bool IsSuccess, string ErrorMessage)> VerifyEmailOtpAsync(ApplicationUser user, string otpCode);
         Task<(bool IsSuccess, string ErrorMessage)> UpdateUserAsync(ApplicationUser user);
         Task<(bool IsSuccess, string ErrorMessage)> UpdateSecurityStampAsync(ApplicationUser user);

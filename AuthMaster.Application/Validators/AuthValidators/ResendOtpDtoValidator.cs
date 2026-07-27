@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthMaster.Application.Validators
+namespace AuthMaster.Application.Validators.AuthValidators
 {
-    public class ResendOtpValidator : AbstractValidator<ResendOtp>
+    public class ResendOtpDtoValidator : AbstractValidator<ResendOtpDto>
     {
-        public ResendOtpValidator() 
+        public ResendOtpDtoValidator() 
         {
             RuleFor(x => x.Email)
                 .Cascade(CascadeMode.Stop)

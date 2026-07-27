@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthMaster.Application.Validators
+namespace AuthMaster.Application.Validators.AuthValidators
 {
-    public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
+    public class RegisterRequestDtoValidator : AbstractValidator<RegisterRequestDto>
     {
-        public RegisterRequestValidator()
+        public RegisterRequestDtoValidator()
         {
             RuleFor(x => x.FirstName)
                 .Cascade(CascadeMode.Stop)

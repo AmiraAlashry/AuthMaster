@@ -1,5 +1,5 @@
 ﻿using AuthMaster.Domain.Entities;
-using AuthMaster.Domain.Interfaces;
+using AuthMaster.Domain.Interfaces.AuthRepositories;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthMaster.Infrastructure.Repositories
+namespace AuthMaster.Infrastructure.Repositories.AuthRepositories
 {
     public class AuthRepository : IAuthRepository
     {

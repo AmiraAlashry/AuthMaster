@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace AuthMaster.Application.DTOs.Auth
 {
-    public class VerifyOtp
+    public class AuthResponseDto
     {
-        public string Email { get; set; } = string.Empty;
-        public string OtpCode { get; set; } = string.Empty;
-
+        public bool IsSuccess { get; set; }
+        public string Message { get; set; }
     }
 }

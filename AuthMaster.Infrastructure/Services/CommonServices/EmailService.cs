@@ -1,4 +1,4 @@
-﻿using AuthMaster.Application.Interfaces;
+﻿using AuthMaster.Application.Interfaces.CommonServices;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthMaster.Infrastructure.Services
+namespace AuthMaster.Infrastructure.Services.CommonServices
 {
     public class EmailService : IEmailService
     {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthMaster.Domain.Interfaces
+namespace AuthMaster.Domain.Interfaces.AuthRepositories
 {
     public interface IAuthRepository
     {

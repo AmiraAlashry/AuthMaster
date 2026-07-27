@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthMaster.Application.Interfaces
+namespace AuthMaster.Application.Interfaces.CommonServices
 {
     public interface IEmailService
     {

@@ -1,6 +1,6 @@
 ﻿using AuthMaster.Application.DTOs.Auth;
 using AuthMaster.Application.Helpers;
-using AuthMaster.Application.Interfaces;
+using AuthMaster.Application.Interfaces.AuthServices;
 using AuthMaster.Application.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Components;
@@ -14,12 +14,12 @@ namespace AuthMaster.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IValidator<RegisterRequest> _validator;
-        private readonly IValidator<VerifyOtp> _VerifyOtpvalidator;
-        private readonly IValidator<ResendOtp> _ResendOtpvalidator;
+        private readonly IValidator<RegisterRequestDto> _validator;
+        private readonly IValidator<VerifyOtpDto> _VerifyOtpvalidator;
+        private readonly IValidator<ResendOtpDto> _ResendOtpvalidator;
 
 
-        public AuthController(IAuthService authService, IValidator<RegisterRequest> validator, IValidator<VerifyOtp> VerifyOtpvalidator, IValidator<ResendOtp> resendOtpvalidator)
+        public AuthController(IAuthService authService, IValidator<RegisterRequestDto> validator, IValidator<VerifyOtpDto> VerifyOtpvalidator, IValidator<ResendOtpDto> resendOtpvalidator)
         {
             _authService = authService;
             _validator = validator;
@@ -27,7 +27,7 @@ namespace AuthMaster.API.Controllers
             _ResendOtpvalidator = resendOtpvalidator;
         }
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
             var validationResult = await _validator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -42,7 +42,7 @@ namespace AuthMaster.API.Controllers
             return Ok(response);
         }
         [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtp request)
+        public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpDto request)
         {
             var validationResult = await _VerifyOtpvalidator.ValidateAsync(request);
             if (!validationResult.IsValid)
@@ -58,7 +58,7 @@ namespace AuthMaster.API.Controllers
             return Ok(response);
         }
         [HttpPost("resend-otp")]
-        public async Task<IActionResult> ResendOtp([FromBody] ResendOtp request)
+        public async Task<IActionResult> ResendOtp([FromBody] ResendOtpDto request)
         {
             var validationResult = await _ResendOtpvalidator.ValidateAsync(request);
             if (!validationResult.IsValid)

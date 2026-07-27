@@ -113,5 +113,137 @@ namespace AuthMaster.Application.Services
                 Message = "Registration successful. Please check your email for the OTP code to verify your account."
             };
         }
+
+        public async Task<AuthResponse> ResendOtpAsync(ResendOtp request)
+        {
+            var user = await _authRepository.GetUserByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "User not found."
+                };
+            }
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "This account was registered using Google. OTP verification is not required."
+                };
+            }
+            if (user.EmailConfirmed)
+            {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "Email is already verified. You can log in directly."
+                };
+            }
+            var stampResult = await _authRepository.UpdateSecurityStampAsync(user);
+            if (!stampResult.IsSuccess)
+            {
+                _logger.LogWarning("Failed to update Security Stamp during OTP resend for {Email}. Errors: {Errors}", request.Email, stampResult.ErrorMessage); 
+               
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "Failed to process your request due to a system error. Please try again."
+                };  
+            }
+            var otpCode = await _authRepository.GenerateEmailOtpAsync(user.Email);
+            if (string.IsNullOrEmpty(otpCode))
+            {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "we failed to generate the OTP code. Please try requesting a new code."
+                };
+            }
+            var userName = $"{user.FirstName} {user.LastName}";
+            var emailBody = EmailTemplates.GenerateOtpEmail(userName, otpCode);
+
+            try
+            {
+                await _emailService.SendEmailAsync(user.Email, "Verify Your Account - AuthMaster", emailBody);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send OTP email to {Email}", user.Email);
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "we couldn't send the verification email. Please try requesting a new code."
+                };
+            }
+            return new AuthResponse
+            {
+                IsSuccess = true,
+                Message = "Please check your email for the OTP code to verify your account."
+            };
+        }
+
+        public async Task<AuthResponse> VerifyOtpAsync(VerifyOtp request)
+        {
+            var user = await _authRepository.GetUserByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "User not found."
+                };
+            }
+
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "This account was registered using Google. OTP verification is not required."
+                };
+            }
+            if (user.EmailConfirmed)
+                {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "Email is already verified. You can log in directly."
+                };
+            }
+            var verifyResult = await _authRepository.VerifyEmailOtpAsync(user, request.OtpCode);
+            if (!verifyResult.IsSuccess)
+            {
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = verifyResult.ErrorMessage
+                };
+            }
+            user.EmailConfirmed = true;
+            user.VerifiedAt = DateTime.UtcNow;
+            var updateResult = await _authRepository.UpdateUserAsync(user);
+            if (!updateResult.IsSuccess)
+            {
+                _logger.LogError("Failed to update user {Email} after OTP success. Errors: {Errors}", request.Email, updateResult.ErrorMessage);
+                return new AuthResponse
+                {
+                    IsSuccess = false,
+                    Message = "Email verification failed due to a system error. Please try again."
+                };
+            }
+            var stampResult = await _authRepository.UpdateSecurityStampAsync(user);
+            if (!stampResult.IsSuccess)
+            {
+                _logger.LogWarning("Email verified for {Email}, but failed to update Security Stamp. Errors: {Errors}", request.Email, stampResult.ErrorMessage);
+            }
+
+            return new AuthResponse
+            {
+                IsSuccess = true,
+                Message = "Email verification successful. You can now log in."
+            };
+        }
     }
 }

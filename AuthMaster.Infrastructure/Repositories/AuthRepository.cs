@@ -62,5 +62,37 @@ namespace AuthMaster.Infrastructure.Repositories
             var result = await _userManager.DeleteAsync(user);
             return result.Succeeded;
         }
+
+        public async Task<(bool IsSuccess, string ErrorMessage)> VerifyEmailOtpAsync(ApplicationUser user, string otpCode)
+        {
+            var isValid = await _userManager.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider, otpCode);
+            if (!isValid)
+            {
+                return (false, "Invalid or expired OTP code.");
+            }
+            return (true, string.Empty);
+        }
+
+        public async Task<(bool IsSuccess, string ErrorMessage)> UpdateUserAsync(ApplicationUser user)
+        {
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+                return (false, errorMessage);
+            }
+            return (true, string.Empty);
+        }
+
+        public async Task<(bool IsSuccess, string ErrorMessage)> UpdateSecurityStampAsync(ApplicationUser user)
+        {
+            var result = await _userManager.UpdateSecurityStampAsync(user);
+            if (!result.Succeeded)
+            {
+                var errorMessage = string.Join(", ", result.Errors.Select(e => e.Description));
+                return (false, errorMessage);
+            }
+            return (true, string.Empty);
+        }
     }
 }

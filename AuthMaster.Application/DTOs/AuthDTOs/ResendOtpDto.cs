@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace AuthMaster.Application.DTOs.Auth
 {
-    public class AuthResponse
+    public class ResendOtpDto
     {
-        public bool IsSuccess { get; set; }
-        public string Message { get; set; }
+        public string Email { get; set; }
     }
 }

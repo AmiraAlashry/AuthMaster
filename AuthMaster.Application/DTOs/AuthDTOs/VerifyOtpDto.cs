@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace AuthMaster.Application.DTOs.Auth
 {
-    public class ResendOtp
+    public class VerifyOtpDto
     {
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string OtpCode { get; set; } = string.Empty;
+
     }
 }

@@ -32,6 +32,7 @@ namespace AuthMaster.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();
             

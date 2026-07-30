@@ -15,5 +15,6 @@ namespace AuthMaster.Domain.Entities
         public UserType Type { get; set; } = UserType.User;
         public DateTime CreatedAt { get; set; }
         public DateTime? VerifiedAt { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     }
 }

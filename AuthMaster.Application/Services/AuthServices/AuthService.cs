@@ -25,7 +25,7 @@ namespace AuthMaster.Application.Services.AuthServices
             _emailService = emailService;
             _logger = logger;
         }       
-        public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request)
+        public async Task<AuthBaseResponseDto> RegisterAsync(RegisterRequestDto request)
         {
             var existingUser = await _authRepository.GetUserByEmailAsync(request.Email);
 
@@ -33,13 +33,13 @@ namespace AuthMaster.Application.Services.AuthServices
             {
                 if (string.IsNullOrEmpty(existingUser.PasswordHash))
                 {
-                    return new AuthResponseDto
+                    return new AuthBaseResponseDto
                     {
                         IsSuccess = false,
                         Message = "This email is already registered via Google. Please log in using your Google account."
                     };
                 }
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "This email is already registered. Please log in."
@@ -59,7 +59,7 @@ namespace AuthMaster.Application.Services.AuthServices
             if (!result.IsSuccess)
             {
                 _logger.LogWarning("Failed to register new user {Email}. Identity Errors: {Errors}", newUser.Email, result.ErrorMessage);
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = result.ErrorMessage
@@ -78,7 +78,7 @@ namespace AuthMaster.Application.Services.AuthServices
                     _logger.LogWarning("AuthMaster: Successfully rolled back and deleted user {Email} because the role {RoleName} could not be assigned (Ensure it exists in the database).", newUser.Email, newUser.Type.ToString());
                 }
 
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "Registration failed due to a system error. Please try again."
@@ -88,7 +88,7 @@ namespace AuthMaster.Application.Services.AuthServices
             if (string.IsNullOrEmpty(otpCode))
             {
                 _logger.LogWarning("Failed to generate OTP for newly registered user {Email}", newUser.Email);
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = true,
                     Message = "Account created successfully, but we failed to generate the OTP code. Please try requesting a new code."
@@ -104,26 +104,26 @@ namespace AuthMaster.Application.Services.AuthServices
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send OTP email to newly registered user {Email}", newUser.Email);
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = true,
                     Message = "Account created successfully, but we couldn't send the verification email. Please try requesting a new code."
                 };
             }
                 
-            return new AuthResponseDto
+            return new AuthBaseResponseDto
             {
                 IsSuccess = true,
                 Message = "Registration successful. Please check your email for the OTP code to verify your account."
             };
         }
 
-        public async Task<AuthResponseDto> ResendOtpAsync(ResendOtpDto request)
+        public async Task<AuthBaseResponseDto> ResendOtpAsync(ResendOtpDto request)
         {
             var user = await _authRepository.GetUserByEmailAsync(request.Email);
             if (user == null)
             {
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "User not found."
@@ -131,7 +131,7 @@ namespace AuthMaster.Application.Services.AuthServices
             }
             if (string.IsNullOrEmpty(user.PasswordHash))
             {
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "This account was registered using Google. OTP verification is not required."
@@ -139,7 +139,7 @@ namespace AuthMaster.Application.Services.AuthServices
             }
             if (user.EmailConfirmed)
             {
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "Email is already verified. You can log in directly."
@@ -150,7 +150,7 @@ namespace AuthMaster.Application.Services.AuthServices
             {
                 _logger.LogWarning("Failed to update Security Stamp during OTP resend for {Email}. Errors: {Errors}", request.Email, stampResult.ErrorMessage); 
                
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "Failed to process your request due to a system error. Please try again."
@@ -160,7 +160,7 @@ namespace AuthMaster.Application.Services.AuthServices
             if (string.IsNullOrEmpty(otpCode))
             {
                 _logger.LogWarning("Failed to generate OTP for user {Email} during ResendOtp", user.Email);
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "We failed to generate the OTP code. Please try requesting a new code."
@@ -176,25 +176,25 @@ namespace AuthMaster.Application.Services.AuthServices
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send OTP email to {Email}", user.Email);
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "We couldn't send the verification email. Please try requesting a new code."
                 };
             }
-            return new AuthResponseDto
+            return new AuthBaseResponseDto
             {
                 IsSuccess = true,
                 Message = "Please check your email for the OTP code to verify your account."
             };
         }
 
-        public async Task<AuthResponseDto> VerifyOtpAsync(VerifyOtpDto request)
+        public async Task<AuthBaseResponseDto> VerifyOtpAsync(VerifyOtpDto request)
         {
             var user = await _authRepository.GetUserByEmailAsync(request.Email);
             if (user == null)
             {
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "User not found."
@@ -203,7 +203,7 @@ namespace AuthMaster.Application.Services.AuthServices
 
             if (string.IsNullOrEmpty(user.PasswordHash))
             {
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "This account was registered using Google. OTP verification is not required."
@@ -212,7 +212,7 @@ namespace AuthMaster.Application.Services.AuthServices
 
             if (user.EmailConfirmed)
                 {
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "Email is already verified. You can log in directly."
@@ -222,7 +222,7 @@ namespace AuthMaster.Application.Services.AuthServices
             var verifyResult = await _authRepository.VerifyEmailOtpAsync(user, request.OtpCode);
             if (!verifyResult.IsSuccess)
             {
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = verifyResult.ErrorMessage
@@ -236,7 +236,7 @@ namespace AuthMaster.Application.Services.AuthServices
             if (!updateResult.IsSuccess)
             {
                 _logger.LogError("Failed to update user {Email} after OTP success. Errors: {Errors}", request.Email, updateResult.ErrorMessage);
-                return new AuthResponseDto
+                return new AuthBaseResponseDto
                 {
                     IsSuccess = false,
                     Message = "Email verification failed due to a system error. Please try again."
@@ -249,7 +249,7 @@ namespace AuthMaster.Application.Services.AuthServices
                 _logger.LogWarning("Email verified for {Email}, but failed to update Security Stamp. Errors: {Errors}", request.Email, stampResult.ErrorMessage);
             }
 
-            return new AuthResponseDto
+            return new AuthBaseResponseDto
             {
                 IsSuccess = true,
                 Message = "Email verification successful. You can now log in."

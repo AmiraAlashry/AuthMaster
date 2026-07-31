@@ -9,9 +9,9 @@ namespace AuthMaster.Application.Interfaces.AuthServices
 {
     public interface IAuthService
     {
-        Task<AuthResponseDto> RegisterAsync(RegisterRequestDto request);
-        Task<AuthResponseDto> VerifyOtpAsync(VerifyOtpDto request);
-        Task<AuthResponseDto> ResendOtpAsync(ResendOtpDto request);
+        Task<AuthBaseResponseDto> RegisterAsync(RegisterRequestDto request);
+        Task<AuthBaseResponseDto> VerifyOtpAsync(VerifyOtpDto request);
+        Task<AuthBaseResponseDto> ResendOtpAsync(ResendOtpDto request);
 
     }
 }

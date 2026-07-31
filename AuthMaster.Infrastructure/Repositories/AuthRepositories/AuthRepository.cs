@@ -1,6 +1,7 @@
 ﻿using AuthMaster.Domain.Entities;
 using AuthMaster.Domain.Interfaces.AuthRepositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -97,6 +98,38 @@ namespace AuthMaster.Infrastructure.Repositories.AuthRepositories
                 return (false, errorMessage);
             }
             return (true, string.Empty);
+        }
+
+        public async Task<bool> CheckPasswordAsync(ApplicationUser user, string password)
+        {
+            return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        public async Task<IList<string>> GetRolesAsync(ApplicationUser user)
+        {
+            return await _userManager.GetRolesAsync(user);
+        }
+
+        public async Task<bool> IsLockedOutAsync(ApplicationUser user)
+        {
+            return await _userManager.IsLockedOutAsync(user);
+        }
+
+        public async Task AccessFailedAsync(ApplicationUser user)
+        {
+            await _userManager.AccessFailedAsync(user);
+        }
+
+        public async Task ResetAccessFailedCountAsync(ApplicationUser user)
+        {
+            await _userManager.ResetAccessFailedCountAsync(user);
+        }
+
+        public async Task<ApplicationUser?> GetUserWithTokensByEmailAsync(string email)
+        {
+            return await _userManager.Users
+                          .Include(u => u.RefreshTokens)
+                          .FirstOrDefaultAsync(u => u.Email == email);
         }
     }
 }

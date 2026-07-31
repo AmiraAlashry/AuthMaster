@@ -11,5 +11,6 @@ namespace AuthMaster.Application.Interfaces.AuthServices
     public interface ITokenRepositories
     {
         Task<JwtSecurityToken> GenerateJwtTokenAsync(ApplicationUser user);
+        RefreshToken GenerateRefreshToken();
     }
 }

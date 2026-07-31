@@ -9,10 +9,13 @@ using AuthMaster.Infrastructure.Data;
 using AuthMaster.Infrastructure.Repositories.AuthRepositories;
 using AuthMaster.Infrastructure.Services.CommonServices;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
+using System.Text;
 namespace AuthMaster.API
 {
     public class Program
@@ -20,9 +23,32 @@ namespace AuthMaster.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var configuration = builder.Configuration;
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+              .AddJwtBearer(o =>
+              {
+                  o.RequireHttpsMetadata = false;
+                  o.SaveToken = false;
+                  o.TokenValidationParameters = new TokenValidationParameters
+                  {
+                      ValidateIssuerSigningKey = true,
+                      ValidateIssuer = true,
+                      ValidateAudience = true,
+                      ValidateLifetime = true,
+                      ValidIssuer = configuration["JwtSettings:Issuer"],
+                      ValidAudience = configuration["JwtSettings:Audience"],
+                      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JwtSettings:SecretKey"] ?? "")),
+                      ClockSkew = TimeSpan.Zero
+                  };
+              });
 
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()

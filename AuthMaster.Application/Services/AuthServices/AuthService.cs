@@ -1,4 +1,5 @@
 ﻿using AuthMaster.Application.DTOs.Auth;
+using AuthMaster.Application.DTOs.AuthDTOs;
 using AuthMaster.Application.Helpers;
 using AuthMaster.Application.Interfaces.AuthServices;
 using AuthMaster.Application.Interfaces.CommonServices;
@@ -8,6 +9,7 @@ using AuthMaster.Domain.Interfaces.AuthRepositories;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,14 +19,99 @@ namespace AuthMaster.Application.Services.AuthServices
     public class AuthService : IAuthService
     {
         private readonly IAuthRepository _authRepository;
+        private readonly ITokenRepositories _tokenRepositories;
         private readonly IEmailService _emailService;
         private readonly ILogger<AuthService> _logger;
-        public AuthService(IAuthRepository authRepository, IEmailService emailService, ILogger<AuthService> logger)
+        public AuthService(IAuthRepository authRepository, ITokenRepositories tokenRepositories, IEmailService emailService, ILogger<AuthService> logger)
         {
             _authRepository=authRepository;
+            _tokenRepositories = tokenRepositories;
             _emailService = emailService;
             _logger = logger;
-        }       
+        }
+
+        public async Task<LoginResponseDto> LoginAsync(LoginRequestDto request)
+        {
+            var user = await _authRepository.GetUserWithTokensByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return new LoginResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid email or password."
+                };
+            }
+            if (string.IsNullOrEmpty(user.PasswordHash))
+            {
+                return new LoginResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "This account is registered via Google. Please use Google login."
+                };
+            }
+            if (!user.EmailConfirmed)
+            {
+                return new LoginResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Email is not verified. Please verify your email first."
+                };
+            }
+            var isLockedOut = await _authRepository.IsLockedOutAsync(user);
+            if (isLockedOut)
+            {
+                _logger.LogWarning("Login failed: User {Email} is currently locked out.", request.Email);
+                return new LoginResponseDto { IsSuccess = false, Message = "Account is locked out due to multiple failed attempts. Please try again later." };
+            }
+            var isPasswordValid = await _authRepository.CheckPasswordAsync(user, request.Password);
+            if (!isPasswordValid)
+            {
+                await _authRepository.AccessFailedAsync(user);
+                _logger.LogWarning("Invalid login attempt for user {Email}", request.Email);
+                return new LoginResponseDto
+                {
+                    IsSuccess = false,
+                    Message = "Invalid email or password."
+                };
+            }
+            await _authRepository.ResetAccessFailedCountAsync(user);
+            var jwtTokenObject = await _tokenRepositories.GenerateJwtTokenAsync(user);
+            var accessToken = new JwtSecurityTokenHandler().WriteToken(jwtTokenObject);
+
+            var refreshToken = _tokenRepositories.GenerateRefreshToken();
+            user.RefreshTokens ??= new List<RefreshToken>();
+            user.RefreshTokens.RemoveAll(t => t.ExpiresOn <= DateTime.UtcNow);
+            int maxSessions = 3;
+            if (user.RefreshTokens.Count >= maxSessions)
+            {
+                var oldestToken = user.RefreshTokens.OrderBy(t => t.CreatedOn).First();
+                user.RefreshTokens.Remove(oldestToken);
+            }
+            user.RefreshTokens.Add(refreshToken);
+
+            var updateResult = await _authRepository.UpdateUserAsync(user);
+            if (!updateResult.IsSuccess)
+            {
+                _logger.LogError("Failed to update user {Email} with new refresh token. Errors: {Errors}", request.Email, updateResult.ErrorMessage);
+                return new LoginResponseDto { IsSuccess = false, Message = "An error occurred while generating your session. Please try again." };
+            }
+            var userRoles = await _authRepository.GetRolesAsync(user);
+            var singleRole = userRoles.FirstOrDefault() ?? user.Type.ToString();
+            _logger.LogInformation("User {Email} logged in successfully.", request.Email);
+            return new LoginResponseDto
+            {
+                IsSuccess = true,
+                Message = "Login successful.",
+                Id = user.Id,
+                Email = user.Email,
+                UserName = $"{user.FirstName} {user.LastName}",
+                Role = singleRole,
+                Token = accessToken,
+                ExpiresOn = DateTimeExtensions.ToEgyptTime(jwtTokenObject.ValidTo),
+                RefreshToken = refreshToken.Token,
+                RefreshTokenExpiration = DateTimeExtensions.ToEgyptTime(refreshToken.ExpiresOn)
+            };
+        }
         public async Task<AuthBaseResponseDto> RegisterAsync(RegisterRequestDto request)
         {
             var existingUser = await _authRepository.GetUserByEmailAsync(request.Email);

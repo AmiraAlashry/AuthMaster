@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AuthMaster.Application.DTOs.Auth
 {
-    public class AuthResponseDto
+    public class AuthBaseResponseDto
     {
         public bool IsSuccess { get; set; }
         public string Message { get; set; }

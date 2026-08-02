@@ -7,6 +7,7 @@ using AuthMaster.Domain.Entities;
 using AuthMaster.Domain.Interfaces.AuthRepositories;
 using AuthMaster.Infrastructure.Data;
 using AuthMaster.Infrastructure.Repositories.AuthRepositories;
+using AuthMaster.Infrastructure.Repositories.TokenRepositories;
 using AuthMaster.Infrastructure.Services.CommonServices;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -66,6 +67,7 @@ namespace AuthMaster.API
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+            builder.Services.AddScoped<ITokenRepositories, TokenRepositories>();
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
             builder.Services.AddControllers();
             builder.Services.AddOpenApi();

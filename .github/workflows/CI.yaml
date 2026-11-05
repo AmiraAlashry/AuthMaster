@@ -1,0 +1,39 @@
+name: AuthMaster CI
+
+on :
+  push: 
+    branches:
+      - master
+  pull_request:   
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  backend:
+     name: Backend ci 
+     runs-on: ubuntu-latest
+     steps:
+     - name : Checkout code 
+       uses: actions/checkout@v7.0.1
+
+     - name: Setup .NET 9 SDK
+       uses: actions/setup-dotnet@v6.1.0
+       with:
+         dotnet-version: 9.0.x
+
+     - name: Restore dependencies
+       run: dotnet restore
+
+     - name: Build AuthMaster
+       run: dotnet build --configuration Release --no-restore
+
+     - name: Publish AuthMaster
+       run: dotnet publish --configuration Release --output ./publish-output --no-build
+
+     - name: Upload backend artifacts
+       uses: actions/upload-artifact@v7.0.2
+       with:
+         name: Publish-output
+         path: ./publish-output
+
